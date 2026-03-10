@@ -4,11 +4,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaveTheVideo Scraper API Tester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
-<body>
-    <div class="container">
-        <h1>Nyari apa?</h1>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">🎯 SaaveTheVideo Scraper API</h1>
+            <p class="text-gray-600">Test endpoint untuk scraping data dari savethevideo.com</p>
+        </header>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <!-- Info Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    API Info
+                </h2>
+                <p class="text-gray-600 mb-4">Dapatkan informasi tentang API endpoints</p>
+                <button onclick="fetchApiInfo()"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition">
+                    Get Info
+                </button>
+            </div>
+
+            <!-- Scrape Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Scrape Data
+                </h2>
+                <p class="text-gray-600 mb-4">Scrape semua data dari halaman utama</p>
+                <button onclick="fetchScrapedData()"
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition">
+                    Start Scraping
+                </button>
+            </div>
+
+            <!-- Status Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                    Server Status
+                </h2>
+                <div id="serverStatus" class="text-gray-600">
+                    <span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                    Online
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Server berjalan di port 3000</p>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading"
+            class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 flex items-center">
+                <div class="loading mr-3"></div>
+                <span class="text-gray-700">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- API Info Result -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b">
+                    <h3 class="font-semibold text-gray-700">📋 API Info Result</h3>
+                </div>
+                <div class="p-6">
+                    <pre id="apiInfoResult"
+                        class="bg-gray-50 p-4 rounded overflow-auto max-h-96 text-sm">Click "Get Info" to see result</pre>
+                </div>
+            </div>
+
+            <!-- Scrape Result -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b">
+                    <h3 class="font-semibold text-gray-700">🔍 Scrape Result</h3>
+                </div>
+                <div class="p-6">
+                    <pre id="scrapeResult"
+                        class="bg-gray-50 p-4 rounded overflow-auto max-h-96 text-sm">Click "Start Scraping" to see result</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Preview (if available) -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h3 class="font-semibold text-gray-700 mb-4">✨ Features Preview</h3>
+            <div id="featuresPreview" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <p class="text-gray-500 text-sm">Scrape data to see features</p>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="mt-8 bg-blue-50 rounded-lg p-6">
+            <h3 class="font-semibold text-gray-700 mb-3">🔗 Quick Links</h3>
+            <div class="flex flex-wrap gap-4">
+                <a href="/api/info" target="_blank" class="text-blue-600 hover:underline text-sm">/api/info</a>
+                <a href="/api/scrape" target="_blank" class="text-blue-600 hover:underline text-sm">/api/scrape</a>
+                <a href="https://www.savethevideo.com/home" target="_blank"
+                    class="text-blue-600 hover:underline text-sm">Target Website</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        async function fetchApiInfo() {
+            showLoading();
+            try {
+                const response = await fetch('/api/info');
+                const data = await response.json();
+                document.getElementById('apiInfoResult').innerHTML =
+                    JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('apiInfoResult').innerHTML =
+                    `Error: ${error.message}`;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function fetchScrapedData() {
+            showLoading();
+            try {
+                const response = await fetch('/api/scrape');
+                const data = await response.json();
+
+                // Format JSON with syntax highlighting
+                const formattedJson = JSON.stringify(data, null, 2);
+                document.getElementById('scrapeResult').innerHTML = formattedJson;
+
+                // Update features preview if available
+                if (data.success && data.data.features) {
+                    updateFeaturesPreview(data.data.features);
+                }
+            } catch (error) {
+                document.getElementById('scrapeResult').innerHTML =
+                    `Error: ${error.message}`;
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updateFeaturesPreview(features) {
+            const preview = document.getElementById('featuresPreview');
+            if (features && features.length > 0) {
+                preview.innerHTML = features.map(f => `
+                    <div class="bg-gray-50 p-3 rounded">
+                        <h4 class="font-medium text-gray-800">${f.title || 'N/A'}</h4>
+                        <p class="text-sm text-gray-600 mt-1">${f.description || 'No description'}</p>
+                    </div>
+                `).join('');
+            } else {
+                preview.innerHTML = '<p class="text-gray-500 text-sm">No features available</p>';
+            }
+        }
+
+        // Auto-fetch on load?
+        window.addEventListener('load', () => {
+            // Optional: auto fetch API info
+            // fetchApiInfo();
+        });
+    </script>
 </body>
 
 </html>

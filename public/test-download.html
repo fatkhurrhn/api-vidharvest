@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VidHarvest - Downloader Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold flex items-center gap-2">
+                        <i class="ri-video-download-line text-blue-600"></i>
+                        <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            VidHarvest
+                        </span>
+                    </h1>
+                    <p class="text-slate-500 mt-1">Test downloader dengan tombol download beneran</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm flex items-center gap-1">
+                        <i class="ri-checkbox-circle-line"></i>
+                        API Connected
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <i class="ri-link"></i>
+                Paste Video Link
+            </h2>
+
+            <div class="flex flex-col md:flex-row gap-3">
+                <input type="url" id="urlInput" value="https://www.tiktok.com/@anyyytr/video/7594032159774674197"
+                    class="flex-1 px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    placeholder="https://www.youtube.com/watch?v=..." />
+                <button onclick="processVideo()" id="processBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition disabled:opacity-50">
+                    <i class="ri-search-line"></i>
+                    Get Video
+                </button>
+            </div>
+
+            <!-- Quick Test Buttons -->
+            <div class="flex flex-wrap gap-2 mt-4">
+                <span class="text-sm text-slate-500 py-1">Quick test:</span>
+                <button onclick="setUrl('youtube')"
+                    class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm hover:bg-red-200 transition">YouTube</button>
+                <button onclick="setUrl('tiktok')"
+                    class="px-3 py-1 bg-black text-white rounded-full text-sm hover:bg-gray-800 transition">TikTok</button>
+                <button onclick="setUrl('instagram')"
+                    class="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-sm hover:bg-purple-200 transition">Instagram</button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden bg-white rounded-2xl shadow-xl p-8 mb-6">
+            <div class="flex items-center justify-center gap-3">
+                <i class="ri-loader-4-line animate-spin text-2xl text-blue-600"></i>
+                <span class="text-slate-600">Processing video...</span>
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="hidden bg-red-50 border border-red-200 rounded-2xl shadow-xl p-6 mb-6">
+            <div class="flex items-center gap-2 text-red-600 mb-2">
+                <i class="ri-alert-line text-xl"></i>
+                <span class="font-semibold">Error</span>
+            </div>
+            <div id="errorMessage" class="text-red-500 text-sm"></div>
+        </div>
+
+        <!-- Video Info & Download -->
+        <div id="result" class="hidden bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <div id="videoInfo" class="flex flex-col md:flex-row gap-6 mb-6">
+                <!-- Thumbnail -->
+                <div class="md:w-64 h-36 bg-slate-100 rounded-lg overflow-hidden">
+                    <img id="thumbnail" src="" alt="Video thumbnail" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Details -->
+                <div class="flex-1">
+                    <h3 id="videoTitle" class="text-xl font-semibold text-slate-800 mb-2"></h3>
+                    <div class="flex gap-4 text-sm text-slate-500">
+                        <span id="platform" class="flex items-center gap-1">
+                            <i class="ri-global-line"></i>
+                        </span>
+                        <span id="duration" class="flex items-center gap-1">
+                            <i class="ri-time-line"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Buttons -->
+            <h4 class="font-semibold mb-4 flex items-center gap-2">
+                <i class="ri-download-2-line text-blue-600"></i>
+                Download as:
+            </h4>
+
+            <div id="downloadButtons" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Download buttons will be inserted here -->
+            </div>
+
+            <!-- Original URL -->
+            <div class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 truncate">
+                <i class="ri-link mr-1"></i>
+                <span id="originalUrl"></span>
+            </div>
+        </div>
+
+        <!-- Download Progress Modal -->
+        <div id="downloadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+                <div class="text-center">
+                    <i class="ri-download-cloud-line text-5xl text-blue-600 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2" id="downloadStatus">Downloading...</h3>
+                    <p class="text-slate-500 mb-4" id="downloadFilename"></p>
+                    <div class="w-full bg-slate-200 rounded-full h-2 mb-4">
+                        <div id="downloadProgress" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <button onclick="cancelDownload()" class="text-slate-500 hover:text-slate-700 text-sm">
+                        <i class="ri-close-line mr-1"></i>
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentVideoData = null;
+        let downloadController = null;
+
+        function setUrl(platform) {
+            const urls = {
+                youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                tiktok: 'https://www.tiktok.com/@anyyytr/video/7594032159774674197',
+                instagram: 'https://www.instagram.com/reel/DFZxqYxJTlR/'
+            };
+            document.getElementById('urlInput').value = urls[platform];
+        }
+
+        async function processVideo() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            document.getElementById('processBtn').disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('processBtn').disabled = false;
+
+                if (response.ok && data.success) {
+                    currentVideoData = data;
+                    displayVideoInfo(data);
+                } else {
+                    showError(data.message || 'Failed to process video');
+                }
+            } catch (err) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('processBtn').disabled = false;
+                showError('Network error: ' + err.message);
+            }
+        }
+
+        function displayVideoInfo(data) {
+            // Set thumbnail (pakai placeholder kalo ga ada)
+            const thumbnail = data.thumbnail || `https://via.placeholder.com/320x180?text=${data.platform}`;
+            document.getElementById('thumbnail').src = thumbnail;
+            document.getElementById('thumbnail').onerror = function () {
+                this.src = `https://via.placeholder.com/320x180?text=${data.platform}`;
+            };
+
+            // Set video details
+            document.getElementById('videoTitle').textContent = data.title || 'Unknown Title';
+            document.getElementById('platform').innerHTML = `<i class="ri-global-line"></i> ${data.platform}`;
+            document.getElementById('duration').innerHTML = `<i class="ri-time-line"></i> ${data.duration || '00:00'}`;
+            document.getElementById('originalUrl').textContent = data.url;
+
+            // Create download buttons
+            const buttonsContainer = document.getElementById('downloadButtons');
+            buttonsContainer.innerHTML = '';
+
+            if (data.formats && data.formats.length > 0) {
+                data.formats.forEach((format, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'p-4 border-2 border-slate-100 hover:border-blue-500 rounded-xl text-center group transition relative download-btn';
+                    button.innerHTML = `
+                        <div class="text-lg font-semibold text-slate-800 group-hover:text-blue-600">${format.quality}</div>
+                        <div class="text-sm text-slate-400">${format.format.toUpperCase()} • ${format.size}</div>
+                    `;
+
+                    button.onclick = () => downloadFile(format, data.title);
+
+                    // Disable button if URL is invalid
+                    if (!format.url || format.url === '#') {
+                        button.classList.add('opacity-50', 'cursor-not-allowed');
+                        button.onclick = null;
+                        button.title = 'Download not available';
+                    }
+
+                    buttonsContainer.appendChild(button);
+                });
+            } else {
+                buttonsContainer.innerHTML = '<p class="col-span-4 text-center text-slate-500">No download formats available</p>';
+            }
+
+            document.getElementById('result').classList.remove('hidden');
+        }
+
+        async function downloadFile(format, title) {
+            if (!format.url || format.url === '#') {
+                alert('Download URL not available');
+                return;
+            }
+
+            // Tampilkan modal
+            const modal = document.getElementById('downloadModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            document.getElementById('downloadStatus').textContent = 'Starting download...';
+            document.getElementById('downloadFilename').textContent = `${title || 'video'}.${format.format}`;
+            document.getElementById('downloadProgress').style.width = '0%';
+
+            // Buat abort controller untuk cancel
+            downloadController = new AbortController();
+
+            try {
+                // Request download file
+                const response = await fetch('http://localhost:3000/api/download/file', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: format.url,
+                        format: format.format,
+                        quality: format.quality,
+                        title: title
+                    }),
+                    signal: downloadController.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error('Download failed');
+                }
+
+                // Dapatkan blob dari response
+                const blob = await response.blob();
+
+                // Update progress
+                document.getElementById('downloadStatus').textContent = 'Download complete!';
+                document.getElementById('downloadProgress').style.width = '100%';
+
+                // Buat link download
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `${title || 'video'}.${format.format}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Cleanup
+                window.URL.revokeObjectURL(downloadUrl);
+
+                // Tutup modal setelah 1 detik
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 1000);
+
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    document.getElementById('downloadStatus').textContent = 'Download cancelled';
+                } else {
+                    document.getElementById('downloadStatus').textContent = 'Download failed';
+                    console.error('Download error:', err);
+                }
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 2000);
+            } finally {
+                downloadController = null;
+            }
+        }
+
+        function cancelDownload() {
+            if (downloadController) {
+                downloadController.abort();
+                downloadController = null;
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('downloadModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                if (downloadController) {
+                    downloadController.abort();
+                }
+                this.classList.add('hidden');
+                this.classList.remove('flex');
+            }
+        });
+    </script>
+</body>
+
+</html>
